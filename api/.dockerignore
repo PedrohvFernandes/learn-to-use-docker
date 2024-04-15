@@ -1,0 +1,9 @@
+node_modules
+dist
+Dockerfile
+.git*
+.dockerignore
+.gitignore
+.eslintrc.json
+README.md
+diagnostic-docker.md

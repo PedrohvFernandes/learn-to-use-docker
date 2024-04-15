@@ -1,0 +1,50 @@
+# Metodo http - Url - Recurso
+POST http://localhost:3000/events
+# Cabeçalho
+Content-Type: application/json
+
+# Request body
+{
+  "title": "Novo evento",
+  "details": null,
+  "maximumAttendees": 1
+}
+
+###
+
+POST http://localhost:3000/events/fb94b857-fcdb-40ef-bed7-bf291c7f843b/attendees
+Content-Type: application/json
+
+{
+  "name": "João da Silva",
+  "email": "joao3@silva.com"
+}
+
+###
+
+GET http://localhost:3000/events/fb94b857-fcdb-40ef-bed7-bf291c7f843b
+
+
+###
+
+GET http://localhost:3000/attendees/2/badge
+
+###
+
+GET http://localhost:3000/attendees/1/check-in
+
+###
+
+GET http://localhost:3000/events/fb94b857-fcdb-40ef-bed7-bf291c7f843b/attendees
+
+###
+
+GET http://localhost:3000/events/fb94b857-fcdb-40ef-bed7-bf291c7f843b/attendees?query=joao2@silva.com
+
+###
+
+GET http://localhost:3000/events/fb94b857-fcdb-40ef-bed7-bf291c7f843b/attendees?query=João
+
+### Aqui não pode trazer nada, porque esse usuario não existe
+
+GET http://localhost:3000/events/fb94b857-fcdb-40ef-bed7-bf291c7f843b/attendees?query=Joãoooo

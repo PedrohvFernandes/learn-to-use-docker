@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  // provider = "sqlite"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  // O id poderia ser autoincrement em number, mas por questões de segurança usamos o uuid para o id principal privado, e caso quisesse poderiamos fazer um id publico autoincremental para facilitar na busca de um evento nas tabelas. Pk
+  id               String     @id @default(uuid())
+  title            String
+  // Se quiser pode colocar uma descrição
+  details          String?
+  // O slug nada mais é que o nome do titulo so que todo formatado  para ficar bonito como um URL amigavel. Ex: Title do evento: Nlw Unite, Slug: nlw-unite. E isso evita de usarmos o ID que esta em uuid na url para achar o evento, ex: http://localhost:3000/events/nlw-unit, com uuid: http://localhost:3000/events/2ed30af4-9151-47b7-a99e-19e6e847b9ba
+  slug             String     @unique
+  // Se quiser pode colocar um maximo de pessoas no evento
+  maximumAttendees Int?       @map("maximum_attendees")
+  // O mesmo event pode esta relacioando a varios participantes. Isso aqui não quer dizer que vai ter uma nova coluna no nosso banco de dados, isso é so para prisma saber que existe esse relacionamento, facilitando de fazer os join entre essas duas tabelas Event(Um) ---- (Muitos)Attendee
+  attendees        Attendee[]
+
+  // dois @@ é renomeação  do nome da tabela(model) e um @ é para renomear um campo
+  @@map("events")
+}
+
+model Attendee {
+  // Usamos o id incremental porque como cada participante é um ingresso novo, então não teria porque fazer um id uuid para ele e um outro id separado autoincremental para ser o id do ingresso. Então usamos o mesmo id tanto para achar tal participante, quanto para ser como o id do ingresso. Pk. Mas caso queira fazer um id publico, seguro e menor que o UUID para facilitar o usuario na hora de pesquisar suas credenciais, é usar o https://github.com/ai/nanoid, no momento da criação do participante voce criar o id publico na rota register-for-event e usa o id  para pesquisar pelo o usuario na rota get-attendee-badge, em vez de usar o id incremental que é facilmente pesquisavel por qualquer pessoa
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  createdAt DateTime @default(now()) @map("created_at")
+  // Id do evento que aquele participanete esta precisa ser string porque o id do Event é uma string
+  // Essa coluna nessa tabela se diferencia das demais, porque essa é a FK, onde indica em qual evento aquele participante esta
+  eventId   String   @map("event_id")
+
+  // Poderiamos criar um campo aqui de checkin, porque o mesmo participante se inscreve uma so vez no mesmo evento, logo não seria um problema colocar o check direto na tabela do participante pra saber a data e se ele fez ou não o checkin
+  // checkInAt DateTime
+
+  // Um relacionamente de Um  para muitos com o model Event.
+  // onDelete --> Se o evento for apagado os usuarios é apagado tambem. Lembrando que isso não é peformatico
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Como queremos um relacionamento 1 para 1 devemos mudar a maneira que o prisma entendeu, porque ele entendeu que o participante pode ter varios checkins
+  // CheckIn CheckIn[]
+
+  // Colocamos o ? --> Porque não obrigatoriamente todo participante vai ter feito um checkin. Então quando é um relacionamento 1 para 1 a gente sempre vai ter esse lado do relacionamento sendo algo opcional, porque pode não existir um checkin
+  checkIn CheckIn?
+
+  // Dentro da tabela de participantes eu so posso ter a combinação de um email dentro de um evento unico, eu nunca vou poder ter o mesmo email duas vezes ou mais vezes no mesmo evento
+  @@unique([eventId, email])
+  @@map("attendees")
+}
+
+// Por questões de aprendizado iremos criar o checkin em tabela separada
+model CheckIn {
+  id        Int      @id @default(autoincrement())
+  // O createdAt vai servir para indicar a data que aquele participante  fez o check-in
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Agora o relacionamento 1 para 1 --> Porque um participante so pode realizar um check-in, e esse check-in é feito somente por um participante. Dessa forma saberemos a quem esse check-in está relacionado. Poderiamos fazer esse relacionamento tanto na tabela do participante passando o id do checkin para la ou passando o id do usuario(participante) aqui, porque o relacionamento de 1 para 1 não existe uma regra especificamente de quem vai manter a referencia pra referencia da Fk(Chave estrangeira).
+  // Mas nesse caso aqui como o participante pode existir sem o checkin, faz mais sentido o ID do usuario estar na tabela do Check-in, porque não faz sentido do check-in existir sem o participante
+  // Porque um participante so pode ter um so checkin logo unique
+  // Cascade --> Se o participante for deletado o checkin  também sera apagado
+  attendee   Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  attendeeId Int      @unique @map("attendee_id")
+
+  @@map("check_ins")
+}

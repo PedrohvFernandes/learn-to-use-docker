@@ -1,0 +1,69 @@
+# Identação aqui é super importante
+version: '3.7'
+
+# Uma lista de serviço e cada serviço seria um container e dentro dele temos as configurações do container, por exemplo a imagem que ele vai usar, a porta que ele vai expor, as variaveis de ambiente que ele vai usar, etc.
+
+services:
+  
+  # Vou ter um serviço(contianer) que estou apelidando dentro do compose de api-pass-in ou qualquer outra coisa. Que nesse caso dentro dele possui a imagem que criamos(Dockerfile).
+  # Esse container é efemero e não persistente, ou seja, se ele cair, ele perde tudo que tem dentro dele. Para persistir os dados, temos que usar volumes, que é um recurso do docker que permite persistir os dados do container em um volume, que é um diretório no host que é mapeado para o container. Mas, como não precisamos armazenar nem um estado nesse container, não precisamos de volumes. Caso tenha que armazenar alguma informação, temos que usar volumes, usariamos o de --> para, ex: db(de o volume que você quer salvar): onde(a informação onde vai ficar dentro do container).
+  api-pass-in:
+    # Faz um bild da imagem que criamos
+    build:
+      # Passamos o nosso dockerfile que esta nessa raiz do mesmo arquivo do docker-compose, que é o dockerfile. Caso esteja em outro lugar so passar o diretorio corretamente em vez do .
+      context: .
+      # Caso o seu docker file tenha outro nome
+      # Dockerfile: outroNome
+    # Se quiser pode passar outro nome aqui para o seu container
+    container_name: api-pass-in
+    # Porta definida na nossa imagem
+    ports:
+      - 3001:3000
+    # O depends on verifica se o serviço esta rodando, se o container subiu, ou seja, se o container do postgres subiu, ai sim ele sobe o container da api
+    depends_on:
+      - postgres
+    environment:
+      # - DATABASE_URL=file:./dev.db
+      # Agora nossa aplicação olha para o banco de dados do postgres
+      # Uma connection string do postgres. Usuario e Senha do banco de dados, o @ o host e a porta do banco de dados e o nome do banco de dados. O host se não tivesse no docker-compose.yml seria o @localhost, mas como estamos usando a api em docker-compose, ou seja, rodando a api em container, e como estamos rodando o postgres na mesma rede que a API e rodando os dois em container, ela sabe qual é o nome do serviço e o localhost não é acessivel, nesse caso colocamos o nome de postgres, ou seja, o nome do serviço.
+      - DATABASE_URL=postgresql://admin:admin@postgres:5432/passin
+      - NODE_ENV=development
+    # Ditamos a rede que os serviços(container) vão usar
+    networks:
+      - passin
+      # Poderiamos passar mais redesb 
+
+  
+  # Nesse caso iremos usar imagens de terceiro, no caso o postgres. Caso queria criar um dockerfile para o postgres, pode fazer isso também, passando as mesmas opções de configuraçã de build e context.
+  # mas nesse caso iremos usar imagem de terceiros, dando um pull na imagem do postgres e rodar a mesma. Com isso, criamos um container(serviço) do postgres onde usamos imagem de terceiros
+  # Esse container é persistente, ou seja, se ele cair, ele não perde os dados, porque estamos usando volumes. O volume é um recurso do docker que permite persistir os dados do container em um volume, que é um diretório no host que é mapeado para o container. Nesse caso, estamos mapeando o volume db para o diretório /var/lib/postgresql/data que é onde o postgres armazena os dados. ou seja, ele não é efemero, pois possui estado.
+  postgres:
+    # So quero baixar e rodar a imagem do postgres, sem build porque não preciso buildar nada aqui
+    image: postgres:16.2-alpine3.19
+    # Nome do container
+    container_name: db-pass-in
+    # Da nossa interface para a porta default do postgres
+    ports:
+      - 5432:5432
+    # Como saber quais variaveis essa imagem usa https://hub.docker.com/_/postgres indo em overview e descendo a documentação conseguimos ver as envs necessarias. Pode passar a nivel de execução docker run ou no arquivo de configuração
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      # nome do banco de dados
+      - POSTGRES_DB=passin
+    # Nos salvamos toda a estrutura do banco de dados em um volume, ou seja, se o container cair, ele não perde os dados
+    volumes:
+      # de para onde
+      - 'db:/var/lib/postgresql/data'
+    # Ditamos a rede que os serviços vão usar
+    networks:
+      - passin
+
+# Cria uma rede para nós. O docker ja faz isso automaticamente, mas por boa praticas é bom criar a rede
+networks:
+  passin:
+    driver: bridge
+
+# Volumes que criamos para o postgres, persistir os dados
+volumes:
+  db:
