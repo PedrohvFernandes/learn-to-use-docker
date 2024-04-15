@@ -1,5 +1,6 @@
-name: CI
-
+# Nesse Ci buildamos o nosso arquivo Dockerfile, logamos no site da dockerhub>myaccount>security>new acces token e subimos a nossa imagem para la. O password nada mais é que um token gerado na docker hub. Colocamos esses dados sensiveis(username e token) no github>repositorio>Secrets and variables>actions>Repository secrets>NAME_DA_SECRET
+# Generate sha é o sha_code do commit, pegamos ele e colocamos somente os 7 primeiro caracteres como tag da imagem do docker e damos um push na mesma imagem mas sempre como latest, para que tenhamos sempre o acompanhamento das imagens por sha do commit e repetimos a ultima imagem enviada como latest para saber que ela foi a ultima enviada para o docker hub
+# O run é quando fazemos o comando na unha, o uses é quando ja existe ele pronto,  runs-on SO que vai ficar a nossa imagem
 on:
   push:
     branches:

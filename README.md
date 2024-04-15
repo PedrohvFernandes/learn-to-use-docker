@@ -425,7 +425,7 @@ depois rode o comando para popular o banco:
           ```
   - Agora iremos preparar a aplicação para receber o postgres, removendo o arquivo dev.db que era usado pelo SQlite, depois indo no prisma configuramos para receber o postgres, depois removemos o migration_lock em migrations, depois em cada migration mudamos o *autoincrement*, porque no postgres não possui *autoincrement*, usamos o *serial* que é o equivalente ao *autoincrement* do SQlite, e o integer tambem não é necessario visto que um campo *serial* ja é um campo *integer* no postgres. Mudamos também o tipo *DATETIME* para *TIMESTAMP* 
   - Agora declaramos outro serviço dentro do docker-compose o postgres
-  - Para rodar o docker-compose com o postgres basta rodar o ```docker-compose up --build -d``` ele vai fazer baixar, fazer o pull da imagem do postgres(postgres:16.2-alpine3.19) de acordo com a tag que foi definida e o build da nossa imagem(api-api-pass-in) e subir os dois containers(api-pass-in e db-pass-in) em um pacote de container(api(nome da nossa aplicação))
+  - Para rodar o docker-compose com o postgres basta rodar o ```docker-compose up --build -d``` ele vai fazer baixar, fazer o pull da imagem do postgres(postgres:16.2-alpine3.19) de acordo com a tag que foi definida e o build da nossa imagem(api-api-pass-in) e subir os dois containers(api-pass-in e db-pass-in) em um pacote de container(learn-to-use-docker(nome da nossa aplicação))
     ```bash
         [+] Running 10/10
         ✔ postgres 9 layers [⣿⣿⣿⣿⣿⣿⣿⣿⣿]      0B/0B      Pulled                                                                                                      10.9s 
@@ -479,8 +479,28 @@ depois rode o comando para popular o banco:
   - Rodamos sempre com build para caso tenha alguma alteração no dockerfile ou no docker-compose quando alterar algo da nossa imagem, ele ja builda a nossa imagem(Dockerfile) e sobe os containers(serviços) com as alterações(api-pass-in e db-pass-in)
   - Para parar algum container especifico basta rodar o ```docker stop CONTAINER ID```
   - Para remover todos os containers basta rodar o ```docker-compose down```
-  - Para remover algum container(ex: db-pass-in) especifico do nosso pacote de container(ex: api) basta rodar o ```docker rm CONTAINER ID``` lembrando que a imagem ainda vai estar la(ex:postgres:16.2-alpine3.19) no docker, ou seja, no sistema, para remover a imagem basta rodar o ```docker rmi IMAGE ID``` para ver os id das imagens basta rodar o ```docker image ls```
+  - Para remover algum container(ex: db-pass-in) especifico do nosso pacote de container(ex: learn-to-use-docker) basta rodar o ```docker rm CONTAINER ID``` lembrando que a imagem ainda vai estar la(ex:postgres:16.2-alpine3.19) no docker, ou seja, no sistema, para remover a imagem basta rodar o ```docker rmi IMAGE ID``` para ver os id das imagens basta rodar o ```docker image ls```
   - para subir somente o container que foi interrompido  basta rodar o ```docker-compose up -d NOME_DO_SERVIÇO``` --> ```docker-compose up -d postgres``` ou ```docker-compose up``` Sobe tudo que estiver  no docker-compose.yml
   - Caso seja necessario fazer migrations no banco de dados da nossa api ao subir os containers, basta ir no comando start no *package.json* e adicionar o comando de migration no start ```npm run db:migrate-deploy && node dist/server.mjs``` e no Dockerfile deixar no CMD npm start. Não tem problema de deixar o comando da migration no start, porque se paramos algum container que não seja da api(api-pass-in) ao dar o ```docker-compose up -d``` ele vai subir somente o container que foi interrompido, mas caso interrompa o container da api e execute o npm run start ao subir o container da api e rodar as migration não sera um problema, porque o volumes do postgres não são apagados, logo as migrations não serão executadas novamente
   - Então lembre de criar o volumes para o container do banco de dados, para que os dados não se percam quando o container do postgres for removido e quando o container da api desligar, subir e rodar a migrations novamente ao subir o container da api, para isso basta ir no docker-compose.yml e adicionar o volumes no container do Banco de dados.
   - Depois de um ```docker-compose up --build -d``` para subir a aplicação e pegar o novo *package.json* com o comando start alterado.
+
+
+  - Iniciar:
+    - ```npm i```
+    - ```npx prisma generate```
+
+  - Como iniciar a aplicação via Dev e bd docker localmente:
+    - Sobe a nossa api normalmente ```npm run dev```
+    - Sobe o serviço do Bd via docker ```docker-compose up -d postgres```
+    - para testar na web: localhost:3000/docs
+  
+  - Caso de erro nas migrations, basta dar um ```npm run db:migrate```
+  
+  - Como iniciar a aplicação toda via Docker localmente:
+    - Builda a nossa imagem e ja sobe todos os serviços(containers)```docker-compose up --build -d```
+    - Caso ja tenha buildado a nossa imagem(Dockerfile) da api: ```docker-compose up -d```
+    - para testar na web: localhost:3001/docs
+  
+  - Caso de error de migration no docker basta colocar no script de start do package.json o comando de migration ```npm run db:migrate-deploy && node dist/server.mjs``` e no Dockerfile deixar o CMD npm start, para que ao subir o container da api ele execute as migrations e depois inicie a aplicação
+   - E depois buildar a imagem da api novamente e ja subir os serviços(containers): ```docker-compose up --build -d```

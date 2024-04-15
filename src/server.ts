@@ -72,6 +72,6 @@ app
   })
   .then(() => {
     console.log(
-      `Server is running on ${basesConfig.nlwunite.baseUrl.api_base_url}`
+      `Server is running on ${basesConfig.nlwunite.baseUrl.api_base_url}/docs`
     )
   })
