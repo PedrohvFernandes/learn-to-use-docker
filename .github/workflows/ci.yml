@@ -32,3 +32,5 @@ jobs:
       - name: Push image
         run: |
           docker push pedroperipecias/learn-to-use-docker:${{ steps.generate_sha.outputs.sha }}
+          docker tag pedroperipecias/learn-to-use-docker:${{ steps.generate_sha.outputs.sha }} pedroperipecias/learn-to-use-docker:latest
+          docker push pedroperipecias/learn-to-use-docker:latest
