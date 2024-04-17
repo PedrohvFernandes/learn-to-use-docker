@@ -546,45 +546,45 @@ depois rode o comando para popular o banco:
    -  Caso esteja dando erro no log do container da api com esse comando no start, execute o apenas uma vez buildando a aplicação e em seguida no start deixe somente o ```node dist/server.mjs```
     - e rode novamente o build da imagem
     - O que podera acontecer ao rodar o build com o comando ```npm run db:migrate-deploy && node dist/server.mjs```
-    -  Apos rodar ira aparecer isso no log do docker:
-      ```bash
-      
-        > api@1.0.0 db:migrate-deploy
-        > prisma migrate deploy
+      - Apos rodar ira aparecer isso no log do docker:
+        ```bash
+        
+          > api@1.0.0 db:migrate-deploy
+          > prisma migrate deploy
 
-        Environment variables loaded from .env
-        Prisma schema loaded from prisma\schema.prisma
-        Datasource "db": PostgreSQL database "attendee-postgres", schema "public" at "attendee-postgres-do-user-16367090-0.c.db.ondigitalocean.com:25060"
+          Environment variables loaded from .env
+          Prisma schema loaded from prisma\schema.prisma
+          Datasource "db": PostgreSQL database "attendee-postgres", schema "public" at "attendee-postgres-do-user-16367090-0.c.db.ondigitalocean.com:25060"
 
-        5 migrations found in prisma/migrations
+          5 migrations found in prisma/migrations
 
-        Applying migration `20240404175946_create_table_events`
-        Applying migration `20240405204149_create_table_attendees`
-        Applying migration `20240405213357_add_uniqueness_on_event_id_and_email`
-        Applying migration `20240406174022_create_check_ins_table`
-        Applying migration `20240406190256_add_cascades`
-      ```
+          Applying migration `20240404175946_create_table_events`
+          Applying migration `20240405204149_create_table_attendees`
+          Applying migration `20240405213357_add_uniqueness_on_event_id_and_email`
+          Applying migration `20240406174022_create_check_ins_table`
+          Applying migration `20240406190256_add_cascades`
+        ```
 
-      Talvez de esse erro no log do docker do container da api(api-pass-in), mas não tem problema porque ele ja aplicou as migrations. Mas caso não queria ver esse erro, basta deletar todas as migrations e rodar o ```npm run db:migrate-deploy``` ou ```npm run db:migrate``` novamente localmente, e depois buildar a imagem da api novamente e ja subir os serviços(containers): ```docker-compose up --build -d``` e lembre de deixar o comando no start do package.json ```npm run db:migrate-deploy && node dist/server.mjs```. Isso pode estar ocorrendo porque a aplicação no prisma estava com SQlite e agora esta com o postgres
-      ```bash
-          Error: P3018
+        Talvez de esse erro no log do docker do container da api(api-pass-in), mas não tem problema porque ele ja aplicou as migrations. Mas caso não queria ver esse erro, basta deletar todas as migrations e rodar o ```npm run db:migrate-deploy``` ou ```npm run db:migrate``` novamente localmente, e depois buildar a imagem da api novamente e ja subir os serviços(containers): ```docker-compose up --build -d``` e lembre de deixar o comando no start do package.json ```npm run db:migrate-deploy && node dist/server.mjs```. Isso pode estar ocorrendo porque a aplicação no prisma estava com SQlite e agora esta com o postgres
+        ```bash
+            Error: P3018
 
-          A migration failed to apply. New migrations cannot be applied before the error is recovered from. Read more about how to resolve migration issues in a production database: https://pris.ly/d/migrate-resolve
+            A migration failed to apply. New migrations cannot be applied before the error is recovered from. Read more about how to resolve migration issues in a production database: https://pris.ly/d/migrate-resolve
 
-          Migration name: 20240406190256_add_cascades
+            Migration name: 20240406190256_add_cascades
 
-          Database error code: 42601
+            Database error code: 42601
 
-          Database error:
-          ERROR: syntax error at or near "PRAGMA"
+            Database error:
+            ERROR: syntax error at or near "PRAGMA"
 
-          Position:
-            0
-            1 -- RedefineTables
-            2 PRAGMA foreign_keys=OFF;
+            Position:
+              0
+              1 -- RedefineTables
+              2 PRAGMA foreign_keys=OFF;
 
-          DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState(E42601), message: "syntax error at or near \"PRAGMA\"", detail: None, hint: None, position: Some(Original(19)), where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("scan.l"), line: Some(1241), routine: Some("scanner_yyerror") }
-      ```
+            DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState(E42601), message: "syntax error at or near \"PRAGMA\"", detail: None, hint: None, position: Some(Original(19)), where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("scan.l"), line: Some(1241), routine: Some("scanner_yyerror") }
+        ```
   
   - Pipeline e actions
     - [Hands-on: automatização de pipelines de entrega com Github Actions](https://medium.com/itautech/hands-on-automatização-de-pipelines-de-entrega-com-github-actions-1e6a0864f6ce)
@@ -733,6 +733,6 @@ depois rode o comando para popular o banco:
       - Se eu quiser deletar ```terraform plan -destroy``` ou comentar ou tirar o recurso do main.tf e rodar o ```terraform apply -auto-approve```
       - O terraform se orienta pelo arquivo gerado apos o apply *terraform.tfstate*, logo, se deletarmos ele e rodar um plan, ele vai entender que precisamos criar esses recursos novamente, isso vai gerar uma anomalia, dando problema para criar o mesmo recurso com o mesmo nome...
       - Agora iremos conectar a nossa aplicação com o banco
-       - Em overview>Connection parameters>Connection strin>database/pool:defaultdb>attendee-postgres> copiamos a string de conexão: postgresql://doadmin:SHOW_PASSWORD@attendee-postgres-do-user-16367090-0.c.db.ondigitalocean.com:25060/attendee-postgres?sslmode=require
-       - Podemos testar colocando no env da nossa aplicação em DATABASE_URL, lembre de rodar as migrations apos mudar o env do banco, seja no .env quanto no docker compose.
+        - Na Digital once Em overview>Connection parameters>Connection strin>database/pool:defaultdb>attendee-postgres> copiamos a string de conexão: postgresql://doadmin:SHOW_PASSWORD@attendee-postgres-do-user-16367090-0.c.db.ondigitalocean.com:25060/attendee-postgres?sslmode=require
+        - Podemos testar colocando no env da nossa aplicação em DATABASE_URL, lembre de rodar as migrations apos mudar o env do banco, seja no .env quanto no docker compose(Pode dar os erros que foram listados antes de entrar na parte do terraform ao fazer as migrations tanto com docker mudando o script de start, quanto fora do docker fazendo manual usando o comando de migração do prisma).
       - Ao tentar enviar os arquivos *terraform.tfstate*, *.terraform.lock.hcl* e a pasta *.terraform* para o github, ele não vai deixar, porque são arquivos sensíveis, logo, devemos criar um arquivo *.gitignore* e colocar esses arquivos la, para que não sejam enviados para o github
