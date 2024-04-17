@@ -654,7 +654,7 @@ depois rode o comando para popular o banco:
     - Baixe as extensoes do terraform no vscode: [HashiCorp Terraform](https://marketplace.visualstudio.com/items?itemName=HashiCorp.terraform), [Terraform](https://marketplace.visualstudio.com/items?itemName=4ops.terraform) e [Terraform Autocomplete](https://marketplace.visualstudio.com/items?itemName=erd0s.terraform-autocomplete)
     - Lembre de instalar o terraform na maquina: [Terraform](https://developer.hashicorp.com/terraform/install?product_intent=terraform)
       - [Como instalar](https://www.youtube.com/watch?v=bSrV1Dr8py8)(Lembre de fechar e abrir o terminal para que o terraform seja reconhecido, se não der abre e fechar o vscode)
-    - Agora iremos iniciar o terraform ```terraform init```, lembre de abrir o terminal na pasta do terraform com os arquivos do Terraform, apos isso ele ira gerar *.terraform.lock*. O terraform init ira iniciar o nosso plugin, procurar ele e instalar
+    - Agora iremos iniciar o terraform ```terraform init```, lembre de abrir o terminal na pasta do terraform com os arquivos do Terraform, apos isso ele ira gerar *.terraform.lock.hcl*. O terraform init ira iniciar o nosso plugin, procurar ele e instalar
     - Depois ```terraform fmt``` para ver se os arquivos estão formatados corretamente
     - Depois ```terraform plan```, ele ira criar a pasta *.terraform*, onde ele cria um plano de execução, ele planifica.
       ```bash
@@ -698,7 +698,7 @@ depois rode o comando para popular o banco:
       ```
       - O plano dele inidica ele vai criar o cluster, depois o BD e no plano dele ele vai adicionar 2 recursos. O terraform é baseado em estado, o famoso tf state, o estado do cluster, é legal que esse arquivo fique em um lugar remoto e não na nossa maquina
       - Depois ```terraform apply -auto-approve```, ele ira aplicar o plano de execução, o -auto-approve é para não travar o console
-      - Apos isso, ele ira criar arquivos *.terraform.tfstate.lock* e *terraform.tfstate* e ira criar o nosso cluster
+      - Apos isso, ele ira criar o arquivo *terraform.tfstate* e ira criar o nosso cluster
       - Se você ir na digital once em [database](https://cloud.digitalocean.com/databases?i=db8298), você vera o cluster sendo criado e depois o banco. Apos a criação o tfstate podera ser aberto. E apos a criação teremos um banco de dados remoto. Na parte o overview na digital ocean é possivel ver a senha do banco. digitalocean_database_db.db-name --> banco, digitalocean_database_cluster.db-cluster -> cluster
       ```bash
         digitalocean_database_cluster.db-cluster: Creating...
