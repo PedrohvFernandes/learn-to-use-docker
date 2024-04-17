@@ -735,3 +735,4 @@ depois rode o comando para popular o banco:
       - Agora iremos conectar a nossa aplicação com o banco
        - Em overview>Connection parameters>Connection strin>database/pool:defaultdb>attendee-postgres> copiamos a string de conexão: postgresql://doadmin:SHOW_PASSWORD@attendee-postgres-do-user-16367090-0.c.db.ondigitalocean.com:25060/attendee-postgres?sslmode=require
        - Podemos testar colocando no env da nossa aplicação em DATABASE_URL, lembre de rodar as migrations apos mudar o env do banco, seja no .env quanto no docker compose.
+      - Ao tentar enviar os arquivos *terraform.tfstate*, *.terraform.lock.hcl* e a pasta *.terraform* para o github, ele não vai deixar, porque são arquivos sensíveis, logo, devemos criar um arquivo *.gitignore* e colocar esses arquivos la, para que não sejam enviados para o github
