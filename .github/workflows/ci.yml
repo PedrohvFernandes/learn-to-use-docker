@@ -1,36 +1,56 @@
-# Nesse Ci buildamos o nosso arquivo Dockerfile, logamos no site da dockerhub>myaccount>security>new acces token e subimos a nossa imagem para la. O password nada mais é que um token gerado na docker hub. Colocamos esses dados sensiveis(username e token) no github>repositorio>Secrets and variables>actions>Repository secrets>NAME_DA_SECRET
+# Uma Pipeline para git actions
+
+# Ci --> preparação --> build de imagem, instalação de dependência, eslint, testes para testar em tempo de pipeline e CI...
+
+# Usamos o git actions. Para essa action funcionar tem que estar dentro de .github>workflows>ACTION.yml
+# Nesse Ci buildamos o nosso arquivo Dockerfile a cada commit da nossa aplicação e logamos no site da dockerhub e pegamos o token de acesso para acessar, basta ir em dockhub>myaccount>security>new access>nome do token>geneate>copy token gerado e subimos a nossa imagem para la. O password nada mais é que um token gerado na docker hub. Colocamos esses dados sensiveis(username e token) no github>repositorio>Secrets and variables>actions>Repository secrets>NAME_DA_SECRET
 # Generate sha é o sha_code do commit, pegamos ele e colocamos somente os 7 primeiro caracteres como tag da imagem do docker e damos um push na mesma imagem mas sempre como latest, para que tenhamos sempre o acompanhamento das imagens por sha do commit e repetimos a ultima imagem enviada como latest para saber que ela foi a ultima enviada para o docker hub
 # O run é quando fazemos o comando na unha, o uses é quando ja existe ele pronto,  runs-on SO que vai ficar a nossa imagem
+name: CI
+
+# Gatilho --> Quando tiver uma interação>push(interaçao)>na branch main(Poderia passar uma lista de branch)
 on:
   push:
     branches:
       - main
 
+# Esse job faz um build da imagem e sobe a imagem
 jobs:
+  # Nome que estamos dando para o nosso job
   build-and-push:
     name: 'Build and Push'
+    # O nosso job roda em cima de uma maquina com esse SO
     runs-on: ubuntu-latest
 
+    # Steps são os passos a passos que vão fazer quando dermos um push. Ou seja, builds, testes...
     steps:
+      # Nome do steps. Aqui é literalmente um git checkout.
       - name: Checkout
+        # Esse step utiliza meio que um step pre pronto da propria actions do github  https://github.com/actions
         uses: actions/checkout@v4
       
+      # Outro nome para outro step. Nesse step pegamos o sha(codigo gerado para cada commit(hash code))
       - name: Generate sha
         id: generate_sha
+        # Pegamos somente os 7 primeiros do hash code do commit(-c7 --> um split). | --> Pipe pra quebrar a linha. SHA, sha --> Variaveis. GITHUB_SHA --> variaveis do proprio github. $ --> Chamando a variavel. >> --> Passando o valor de uma variavel para a outra. = --> recebendo o valor de outra variavel
         run: |
           SHA=$(echo $GITHUB_SHA | head -c7)
           echo "sha=$SHA" >> $GITHUB_OUTPUT
 
       - name: Build docker image
+        # Fazendo o build da imagem do docker. NomeDePerfilDoDockerHub/NomeDoServiço:TAG(Numero do commit) https://hub.docker.com/repository/docker/pedroperipecias/learn-to-use-docker/general Para pegar o numero do commit basta acessar os steps.nomeDoStep.SaidaDoGenerate_sha.sha(que é a variavel sha que recebe o SHA). Quando da o checkout ele roda na raiz, logo o dockerfile esta na raiz --> . caso não esteja na raiz e o nome não é Dockerfile basta passar -f navegue/ate/o/path/dockerfileName
         run: docker build -t pedroperipecias/learn-to-use-docker:${{ steps.generate_sha.outputs.sha }} .
       
       - name: Log into the container registry
+        # Logamos no dockerhub, usando ja um step pronto passando o username do dockerhub e o token gerado no dockerhub como senha. Esses secrets colocamos em github>repositorioEspecifico>settings>secrets and variables>actions>secrets>new repository secret>name(ex: DOCKERHUB_USERNAME) e secret(conteudo da variavel: ex: seuNomeDoDockerHub). Para criar um token no dockerhub: dockhub>myaccount>security>new access>nome do token>geneate>copy token gerado 
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Push image
+        # Apos logar subimos a imagem pro docker hub. Conseguiriamos fazer isso localmente. Era so dar um docker login no terminal, logar no dockerhub, e dar um docker push e subir normalmente o build da imagem. O segundo é um tagueamento, pegamos a tag que foi feita o push com a versão latest, depois damos um push da latest. Ou seja, teremos a tag em si e teremos a latest. Basicamente a tag que ja foi feita o push(primeira linha), pegamos a tag dela juntamos com a latest, passe agora como latest(segundo linha), e ai fazemos o push dela como latest(terceira linha)
+        # Nome da conta/Nome do serviço: tag
         run: |
           docker push pedroperipecias/learn-to-use-docker:${{ steps.generate_sha.outputs.sha }}
           docker tag pedroperipecias/learn-to-use-docker:${{ steps.generate_sha.outputs.sha }} pedroperipecias/learn-to-use-docker:latest

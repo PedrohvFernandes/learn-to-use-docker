@@ -495,12 +495,243 @@ depois rode o comando para popular o banco:
     - Sobe o serviço do Bd via docker ```docker-compose up -d postgres```
     - para testar na web: localhost:3000/docs
   
-  - Caso de erro nas migrations, basta dar um ```npm run db:migrate```
+  - Caso de erro nas migrations ou caso não consiga inserir algum evento pela docs ou caso você mude a env de conexão com o banco pelo .env, basta dar um ```npm run db:migrate``` ou ```npm run db:migrate-deploy``` para rodar as migrations novamente
+  Apos rodar ira aparecer isso no terminal do vscode:
+  ```bash
+  
+    > api@1.0.0 db:migrate-deploy
+    > prisma migrate deploy
+
+    Environment variables loaded from .env
+    Prisma schema loaded from prisma\schema.prisma
+    Datasource "db": PostgreSQL database "attendee-postgres", schema "public" at "attendee-postgres-do-user-16367090-0.c.db.ondigitalocean.com:25060"
+
+    5 migrations found in prisma/migrations
+
+    Applying migration `20240404175946_create_table_events`
+    Applying migration `20240405204149_create_table_attendees`
+    Applying migration `20240405213357_add_uniqueness_on_event_id_and_email`
+    Applying migration `20240406174022_create_check_ins_table`
+    Applying migration `20240406190256_add_cascades`
+  ```
+
+  Talvez de esse erro, mas não tem problema porque ele ja aplicou as migrations. Mas caso não queria ver esse erro, basta deletar todas as migrations e rodar o ```npm run db:migrate-deploy``` ou ```npm run db:migrate``` novamente. Isso pode estar ocorrendo porque a aplicação no prisma estava com SQlite e agora esta com o postgres
+  ```bash
+      Error: P3018
+
+      A migration failed to apply. New migrations cannot be applied before the error is recovered from. Read more about how to resolve migration issues in a production database: https://pris.ly/d/migrate-resolve
+
+      Migration name: 20240406190256_add_cascades
+
+      Database error code: 42601
+
+      Database error:
+      ERROR: syntax error at or near "PRAGMA"
+
+      Position:
+        0
+        1 -- RedefineTables
+        2 PRAGMA foreign_keys=OFF;
+
+      DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState(E42601), message: "syntax error at or near \"PRAGMA\"", detail: None, hint: None, position: Some(Original(19)), where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("scan.l"), line: Some(1241), routine: Some("scanner_yyerror") }
+  ```
   
   - Como iniciar a aplicação toda via Docker localmente:
     - Builda a nossa imagem e ja sobe todos os serviços(containers)```docker-compose up --build -d```
     - Caso ja tenha buildado a nossa imagem(Dockerfile) da api: ```docker-compose up -d```
     - para testar na web: localhost:3001/docs
   
-  - Caso de error de migration no docker basta colocar no script de start do package.json o comando de migration ```npm run db:migrate-deploy && node dist/server.mjs``` e no Dockerfile deixar o CMD npm start, para que ao subir o container da api ele execute as migrations e depois inicie a aplicação
+  - Caso de error de migration no docker ou caso não consiga inserir algum evento pela docs( *"message": "Internal server error!"*) ou troque a env do BD no docker-compose basta, coloque no script de start do package.json o comando de migration ```npm run db:migrate-deploy && node dist/server.mjs``` e no Dockerfile deixar o CMD npm start, para que ao subir o container da api ele execute as migrations e depois inicie a aplicação.
    - E depois buildar a imagem da api novamente e ja subir os serviços(containers): ```docker-compose up --build -d```
+   -  Caso esteja dando erro no log do container da api com esse comando no start, execute o apenas uma vez buildando a aplicação e em seguida no start deixe somente o ```node dist/server.mjs```
+    - e rode novamente o build da imagem
+    - O que podera acontecer ao rodar o build com o comando ```npm run db:migrate-deploy && node dist/server.mjs```
+    -  Apos rodar ira aparecer isso no log do docker:
+      ```bash
+      
+        > api@1.0.0 db:migrate-deploy
+        > prisma migrate deploy
+
+        Environment variables loaded from .env
+        Prisma schema loaded from prisma\schema.prisma
+        Datasource "db": PostgreSQL database "attendee-postgres", schema "public" at "attendee-postgres-do-user-16367090-0.c.db.ondigitalocean.com:25060"
+
+        5 migrations found in prisma/migrations
+
+        Applying migration `20240404175946_create_table_events`
+        Applying migration `20240405204149_create_table_attendees`
+        Applying migration `20240405213357_add_uniqueness_on_event_id_and_email`
+        Applying migration `20240406174022_create_check_ins_table`
+        Applying migration `20240406190256_add_cascades`
+      ```
+
+      Talvez de esse erro no log do docker do container da api(api-pass-in), mas não tem problema porque ele ja aplicou as migrations. Mas caso não queria ver esse erro, basta deletar todas as migrations e rodar o ```npm run db:migrate-deploy``` ou ```npm run db:migrate``` novamente localmente, e depois buildar a imagem da api novamente e ja subir os serviços(containers): ```docker-compose up --build -d``` e lembre de deixar o comando no start do package.json ```npm run db:migrate-deploy && node dist/server.mjs```. Isso pode estar ocorrendo porque a aplicação no prisma estava com SQlite e agora esta com o postgres
+      ```bash
+          Error: P3018
+
+          A migration failed to apply. New migrations cannot be applied before the error is recovered from. Read more about how to resolve migration issues in a production database: https://pris.ly/d/migrate-resolve
+
+          Migration name: 20240406190256_add_cascades
+
+          Database error code: 42601
+
+          Database error:
+          ERROR: syntax error at or near "PRAGMA"
+
+          Position:
+            0
+            1 -- RedefineTables
+            2 PRAGMA foreign_keys=OFF;
+
+          DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState(E42601), message: "syntax error at or near \"PRAGMA\"", detail: None, hint: None, position: Some(Original(19)), where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("scan.l"), line: Some(1241), routine: Some("scanner_yyerror") }
+      ```
+  
+  - Pipeline e actions
+    - [Hands-on: automatização de pipelines de entrega com Github Actions](https://medium.com/itautech/hands-on-automatização-de-pipelines-de-entrega-com-github-actions-1e6a0864f6ce)
+  
+  - Serviço apartado de banco de dados
+    - Um cluster de banco de dados: [digitalocean](https://cloud.digitalocean.com/projects/187bc1eb-cb5f-4710-87f1-8c32ca1d319a/resources?i=db8298)
+      - [Database](https://cloud.digitalocean.com/databases?i=db8298)
+       - [Create Database Cluster](https://cloud.digitalocean.com/databases/new?i=db8298)
+   
+    Não iremos criar o bd diretamente na digitalocean, vamos criar um bd pelo terraform, porque no digitalocen seria algo bem simples, mas ao longo prazo teríamos problemas, por isso iremos criar usando os conceitos de infraestrutura como código(IaC) com o terraform
+    - [Terraform](https://www.terraform.io/)
+     - [Terraform register](https://registry.terraform.io/?product_intent=terraform)
+     - [Browser Providers](https://registry.terraform.io/browse/providers)
+      - Existe varias, como AWS, mas iremos usar a digitalocean
+        - [DigitalOcean](https://registry.terraform.io/providers/digitalocean/digitalocean/latest)
+          - Use Provider
+            ```bash
+            terraform {
+              required_providers {
+                digitalocean = {
+                  source = "digitalocean/digitalocean"
+                  version = "2.36.0"
+                }
+              }
+            }
+
+            provider "digitalocean" {
+              # Configuration options
+              # Passagem de um token associado a nossa conta
+              
+            }
+            ```
+
+
+          - [Documentation](https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs)
+           - [digitalocean_database_cluster](https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs/resources/database_cluster) Todas as configurações que iriamos passar peo console, passamos agora por aqui: Para a gente criar um cluster: Primeiro configuramos o provider, depois dentro do provedor eu falo que eu quero utilizar o recurso digitalocean_database_cluster, e dentro desse recurso eu passo as configurações(que eu ia passar pelo console da digitalonce) que eu quero para o meu cluster. Esse cluster é para o BD postgres
+            - Exemplo:
+           ```bash
+              resource "digitalocean_database_cluster" "postgres-example" {
+                name       = "example-postgres-cluster"
+                engine     = "pg"
+                version    = "15"
+                size       = "db-s-1vcpu-1gb"
+                region     = "nyc1"
+                node_count = 1
+              }
+           ```
+          - Esse é para criar um banco e um cluster para um banco: [digitalocean_database_db](https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs/resources/database_db)
+            ```bash
+                # cria um banco em segundo, usando o id do cluster criado
+                resource "digitalocean_database_db" "database-example" {
+                  cluster_id = digitalocean_database_cluster.postgres-example.id
+                  name       = "foobar"
+                }
+                # Cria um cluster primeiro
+                resource "digitalocean_database_cluster" "postgres-example" {
+                  name       = "example-postgres-cluster"
+                  engine     = "pg"
+                  version    = "11"
+                  size       = "db-s-1vcpu-1gb"
+                  region     = "nyc1"
+                  node_count = 1
+                }
+            ```
+
+    - Criamos uma pasta para a api e uma para terraform, ou deixa a api na raiz do repositorio e criamos uma pasta para o terraform
+    - Baixe as extensoes do terraform no vscode: [HashiCorp Terraform](https://marketplace.visualstudio.com/items?itemName=HashiCorp.terraform), [Terraform](https://marketplace.visualstudio.com/items?itemName=4ops.terraform) e [Terraform Autocomplete](https://marketplace.visualstudio.com/items?itemName=erd0s.terraform-autocomplete)
+    - Lembre de instalar o terraform na maquina: [Terraform](https://developer.hashicorp.com/terraform/install?product_intent=terraform)
+      - [Como instalar](https://www.youtube.com/watch?v=bSrV1Dr8py8)(Lembre de fechar e abrir o terminal para que o terraform seja reconhecido, se não der abre e fechar o vscode)
+    - Agora iremos iniciar o terraform ```terraform init```, lembre de abrir o terminal na pasta do terraform com os arquivos do Terraform, apos isso ele ira gerar *.terraform.lock*. O terraform init ira iniciar o nosso plugin, procurar ele e instalar
+    - Depois ```terraform fmt``` para ver se os arquivos estão formatados corretamente
+    - Depois ```terraform plan```, ele ira criar a pasta *.terraform*, onde ele cria um plano de execução, ele planifica.
+      ```bash
+        Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+          + create
+
+        Terraform will perform the following actions:
+
+          # digitalocean_database_cluster.db-cluster will be created
+          + resource "digitalocean_database_cluster" "db-cluster" {
+              + database             = (known after apply)
+              + engine               = "pg"
+              + host                 = (known after apply)
+              + id                   = (known after apply)
+              + name                 = "attendee-postgres"
+              + node_count           = 1
+              + password             = (sensitive value)
+              + port                 = (known after apply)
+              + private_host         = (known after apply)
+              + private_network_uuid = (known after apply)
+              + private_uri          = (sensitive value)
+              + project_id           = (known after apply)
+              + region               = "nyc1"
+              + size                 = "db-s-1vcpu-1gb"
+              + storage_size_mib     = (known after apply)
+              + uri                  = (sensitive value)
+              + urn                  = (known after apply)
+              + user                 = (known after apply)
+              + version              = "16"
+            }
+
+          # digitalocean_database_db.db-name will be created
+          + resource "digitalocean_database_db" "db-name" {
+              + cluster_id = (known after apply)
+              + id         = (known after apply)
+              + name       = "attendee-postgres"
+            }
+
+        Plan: 2 to add, 0 to change, 0 to destroy.
+
+      ```
+      - O plano dele inidica ele vai criar o cluster, depois o BD e no plano dele ele vai adicionar 2 recursos. O terraform é baseado em estado, o famoso tf state, o estado do cluster, é legal que esse arquivo fique em um lugar remoto e não na nossa maquina
+      - Depois ```terraform apply -auto-approve```, ele ira aplicar o plano de execução, o -auto-approve é para não travar o console
+      - Apos isso, ele ira criar arquivos *.terraform.tfstate.lock* e *terraform.tfstate* e ira criar o nosso cluster
+      - Se você ir na digital once em [database](https://cloud.digitalocean.com/databases?i=db8298), você vera o cluster sendo criado e depois o banco. Apos a criação o tfstate podera ser aberto. E apos a criação teremos um banco de dados remoto. Na parte o overview na digital ocean é possivel ver a senha do banco. digitalocean_database_db.db-name --> banco, digitalocean_database_cluster.db-cluster -> cluster
+      ```bash
+        digitalocean_database_cluster.db-cluster: Creating...
+        digitalocean_database_cluster.db-cluster: Still creating... [10s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [20s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [30s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [40s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [50s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [1m0s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [1m10s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [1m20s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [1m30s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [1m40s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [1m50s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [2m0s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [2m10s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [2m20s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [2m30s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [2m40s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [2m50s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [3m0s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [3m10s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [3m20s elapsed]
+        digitalocean_database_cluster.db-cluster: Still creating... [3m30s elapsed]
+        digitalocean_database_cluster.db-cluster: Creation complete after 3m36s [id=f1a889ad-09e5-48dd-b0f8-d7d89239dcb0]
+        digitalocean_database_db.db-name: Creating...
+        digitalocean_database_db.db-name: Creation complete after 2s [id=f1a889ad-09e5-48dd-b0f8-d7d89239dcb0/database/attendee-postgres]
+
+        Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+      ```
+      - Agora quando for alterar algo, mudar o plano, colocar mais maquinas, sempre via IaC terraform, nunca manualmente pelo console
+      - Se eu quiser deletar ```terraform plan -destroy``` ou comentar ou tirar o recurso do main.tf e rodar o ```terraform apply -auto-approve```
+      - O terraform se orienta pelo arquivo gerado apos o apply *terraform.tfstate*, logo, se deletarmos ele e rodar um plan, ele vai entender que precisamos criar esses recursos novamente, isso vai gerar uma anomalia, dando problema para criar o mesmo recurso com o mesmo nome...
+      - Agora iremos conectar a nossa aplicação com o banco
+       - Em overview>Connection parameters>Connection strin>database/pool:defaultdb>attendee-postgres> copiamos a string de conexão: postgresql://doadmin:SHOW_PASSWORD@attendee-postgres-do-user-16367090-0.c.db.ondigitalocean.com:25060/attendee-postgres?sslmode=require
+       - Podemos testar colocando no env da nossa aplicação em DATABASE_URL, lembre de rodar as migrations apos mudar o env do banco, seja no .env quanto no docker compose.

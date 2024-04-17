@@ -26,7 +26,9 @@ services:
       # - DATABASE_URL=file:./dev.db
       # Agora nossa aplicação olha para o banco de dados do postgres
       # Uma connection string do postgres. Usuario e Senha do banco de dados, o @ o host e a porta do banco de dados e o nome do banco de dados. O host se não tivesse no docker-compose.yml seria o @localhost, mas como estamos usando a api em docker-compose, ou seja, rodando a api em container, e como estamos rodando o postgres na mesma rede que a API e rodando os dois em container, ela sabe qual é o nome do serviço e o localhost não é acessivel, nesse caso colocamos o nome de postgres, ou seja, o nome do serviço.
-      - DATABASE_URL=postgresql://admin:admin@postgres:5432/passin
+      # - DATABASE_URL=postgresql://admin:admin@postgres:5432/passin
+      # - DATABASE_URL=postgresql://doadmin:SHOW_PASSWORD@attendee-postgres-do-user-16367090-0.c.db.ondigitalocean.com:25060/attendee-postgres?sslmode=require
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - NODE_ENV=development
     # Ditamos a rede que os serviços(container) vão usar
     networks:
@@ -47,10 +49,15 @@ services:
       - 5432:5432
     # Como saber quais variaveis essa imagem usa https://hub.docker.com/_/postgres indo em overview e descendo a documentação conseguimos ver as envs necessarias. Pode passar a nivel de execução docker run ou no arquivo de configuração
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=admin
+      # - POSTGRES_USER=admin
+      # - POSTGRES_PASSWORD=admin
+      # - POSTGRES_DB=passin
+
+      # Envs do arquivo .env
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       # nome do banco de dados
-      - POSTGRES_DB=passin
+      - POSTGRES_DB=${POSTGRES_DB}
     # Nos salvamos toda a estrutura do banco de dados em um volume, ou seja, se o container cair, ele não perde os dados
     volumes:
       # de para onde
